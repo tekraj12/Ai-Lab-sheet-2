@@ -1,0 +1,98 @@
+from collections import deque
+
+class MissionariesCannibals:
+    def __init__(self):
+        self.initial_state = (3, 3, 0)
+        self.goal_state = (0, 0, 1)
+
+    # Goal Test
+    def goalTest(self, state):
+        return state == self.goal_state
+
+    # Check if state is valid
+    def is_valid(self, m, c):
+        # missionaries should not be outnumbered
+        if m > 0 and m < c:
+            return False
+        if (3 - m) > 0 and (3 - m) < (3 - c):
+            return False
+        return True
+
+    # Successor Function (Production Rules)
+    def successor(self, state):
+        m, c, boat = state
+        children = []
+
+        # Possible moves (boat capacity 2)
+        moves = [(1,0),(2,0),(0,1),(0,2),(1,1)]
+
+        for dm, dc in moves:
+            if boat == 0:  # boat on left
+                new_state = (m-dm, c-dc, 1)
+            else:          # boat on right
+                new_state = (m+dm, c+dc, 0)
+
+            new_m, new_c, _ = new_state
+
+            if 0 <= new_m <= 3 and 0 <= new_c <= 3:
+                if self.is_valid(new_m, new_c):
+                    children.append(new_state)
+
+        return children
+
+
+# -------- BFS --------
+def BFS(problem):
+    OPEN = deque([problem.initial_state])
+    CLOSED = {problem.initial_state: None}
+
+    while OPEN:
+        state = OPEN.popleft()
+
+        if problem.goalTest(state):
+            return generate_path(state, CLOSED)
+
+        for child in problem.successor(state):
+            if child not in CLOSED:
+                OPEN.append(child)
+                CLOSED[child] = state
+
+    return None
+
+
+# -------- DFS --------
+def DFS(problem):
+    OPEN = [problem.initial_state]
+    CLOSED = {problem.initial_state: None}
+
+    while OPEN:
+        state = OPEN.pop()
+
+        if problem.goalTest(state):
+            return generate_path(state, CLOSED)
+
+        for child in problem.successor(state):
+            if child not in CLOSED:
+                OPEN.append(child)
+                CLOSED[child] = state
+
+    return None
+
+
+# Generate Solution Path
+def generate_path(goal_state, CLOSED):
+    path = []
+    while goal_state is not None:
+        path.append(goal_state)
+        goal_state = CLOSED[goal_state]
+    return path[::-1]
+
+
+# -------- Main --------
+problem = MissionariesCannibals()
+
+print("BFS Solution Path:")
+print(BFS(problem))
+
+print("\nDFS Solution Path:")
+print(DFS(problem))
